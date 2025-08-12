@@ -32,6 +32,7 @@ DEP=$(OBJ:%.o=%.d)
 # linux does not define the OS environment variable
 # if in the future it does, it won't be Windows_NT
 ifeq ($(OS),Windows_NT)
+	SHELL = cmd.exe
 	EXE = fits.exe
 	RM = del /Q
 else
