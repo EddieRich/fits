@@ -23,19 +23,19 @@
 #$(CC) defaults to cc, which defaults to gcc for *.c and g++ for *.cpp
 
 # CFLAGS is not defined by default
-CXXFLAGS=-MMD -Wall -Wextra -Werror -std=c++17 -march=x86-64 -fdiagnostics-color=always
+CFLAGS=-MMD -Wall -Wextra -Werror -std=c17 -march=x86-64 -fdiagnostics-color=always
 
-SRC=$(wildcard *.cpp)
-OBJ=$(SRC:%.cpp=%.o)
+SRC=$(wildcard *.c)
+OBJ=$(SRC:%.c=%.o)
 DEP=$(OBJ:%.o=%.d)
 
 # linux does not define the OS environment variable
 # if in the future it does, it won't be Windows_NT
 ifeq ($(OS),Windows_NT)
-	EXE = main.exe
+	EXE = fits.exe
 	RM = del /Q
 else
-	EXE = main
+	EXE = fits
 #RM is predefined as RM = rm -f
 endif
 
@@ -51,7 +51,7 @@ debug: $(EXE)
 remake: clean debug
 .NOTPARALLEL: remake
 
-release: CXXFLAGS += -Os -s -fno-ident -fno-asynchronous-unwind-tables -faggressive-loop-optimizations
+release: CFLAGS += -Os -s -fno-ident -fno-asynchronous-unwind-tables -faggressive-loop-optimizations
 release: clean $(EXE)
 .NOTPARALLEL: release
 
@@ -62,7 +62,7 @@ clean:
 #	cp $(EXE) $(TARGET)/bin
 
 $(EXE): $(OBJ)
-	$(CXX) -o $@ $^ $(LIBS)
+	$(CC) -o $@ $^ $(LIBS)
 
 -include $(DEP)
 
