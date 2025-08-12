@@ -23,10 +23,10 @@
 #$(CC) defaults to cc, which defaults to gcc for *.c and g++ for *.cpp
 
 # CFLAGS is not defined by default
-CFLAGS=-MMD -Wall -Wextra -Werror -std=c17 -march=x86-64 -fdiagnostics-color=always
+CXXFLAGS=-MMD -Wall -Wextra -Werror -std=c++17 -march=x86-64 -fdiagnostics-color=always
 
-SRC=$(wildcard *.c)
-OBJ=$(SRC:%.c=%.o)
+SRC=$(wildcard *.cpp)
+OBJ=$(SRC:%.cpp=%.o)
 DEP=$(OBJ:%.o=%.d)
 
 # linux does not define the OS environment variable
@@ -51,7 +51,7 @@ debug: $(EXE)
 remake: clean debug
 .NOTPARALLEL: remake
 
-release: CFLAGS += -Os -s -fno-ident -fno-asynchronous-unwind-tables -faggressive-loop-optimizations
+release: CXXFLAGS += -Os -s -fno-ident -fno-asynchronous-unwind-tables -faggressive-loop-optimizations
 release: clean $(EXE)
 .NOTPARALLEL: release
 
@@ -62,7 +62,7 @@ clean:
 #	cp $(EXE) $(TARGET)/bin
 
 $(EXE): $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
+	$(CXX) -o $@ $^ $(LIBS)
 
 -include $(DEP)
 
