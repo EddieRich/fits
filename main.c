@@ -4,94 +4,71 @@
 
 #include "fits.h"
 
-#ifdef _WIN32
-#define PATH_SEPARATOR '\\'
-#else
-#define PATH_SEPARATOR '/'
-#endif
-
 struct s_options
 {
 	int verbose;
-	int info;
+	int show_header;
+	char header[FITS_LINE_SIZE];
 	char filepath[PATH_MAX];
 } options = {0};
 
 void show_options()
 {
 	printf("options:\n");
-	printf("  info=%d\n", options.info);
-	printf("  verbose=%d\n", options.verbose);
+	printf("  show_header=%d", options.show_header);
+
+	if (strlen(options.header) > 0)
+		printf(" <%s>", options.header);
+
+	printf("\n  verbose=%d\n", options.verbose);
 	printf("  fits file=%s\n\n", options.filepath);
 }
 
 void show_usage(char *appname)
 {
 	printf("\nusage: %s [options] fits_file_full_path\noptions:\n", appname);
-	printf("  -i       show file info\n");
+	printf("  -h<name> show header info. optional name is the single header name to show\n");
+	printf("           note: the header, if specified, must immediately follow the -h option\n");
 	printf("  -v       verbose, show lots of information\n");
 	printf("\n\n");
 	exit(1);
 }
 
-int findfile(char *filename)
+void fixFileName(char *filename)
 {
-	char fullname[PATH_MAX];
 	strnset(options.filepath, 0, PATH_MAX);
-	strnset(fullname, 0, PATH_MAX);
+	char *cwd = getcwd(NULL, 0);
+	strncpy(options.filepath, cwd, strlen(cwd));
+	free(cwd);
 
-	strcpy(fullname, filename);
-	if (!strrchr(fullname, '.'))
-		strcat(fullname, ".fits");
+	char *path_sep = "/";
 
-	if (access(fullname, F_OK) == 0)
-	{
-		strcpy(options.filepath, fullname);
-		return 0;
-	}
+#ifdef _WIN32
+	path_sep = "\\";
+#endif
 
-	// check the users "Pictures" directory
-	char *home_dir = getenv("HOME");
-	if (home_dir == NULL)
-	{
-		printf("Error: HOME environment variable not found.\n");
-		return -1;
-	}
+	if (strncmp(path_sep, filename, 1) != 0)
+		strcat(options.filepath, path_sep);
 
-	char pictures_path[_MAX_PATH];
-	strnset(pictures_path, 0, PATH_MAX);
-	sprintf(pictures_path, "%s%cPictures%c", home_dir, PATH_SEPARATOR, PATH_SEPARATOR);
-
-	char search_name[PATH_MAX];
-	strnset(search_name, 0, PATH_MAX);
-	strncpy(search_name, pictures_path, strlen(pictures_path));
-	strncat(search_name, fullname, strlen(fullname));
-
-	if (options.verbose)
-		printf("Searching %s", search_name);
-
-	if (access(search_name, F_OK) == 0)
-	{
-		if (options.verbose)
-			printf(" : found\n");
-
-		strcpy(options.filepath, search_name);
-		return 0;
-	}
-
-	return -1;
+	strcat(options.filepath, filename);
+	if (!strrchr(options.filepath, '.'))
+		strcat(options.filepath, ".fits");
 }
 
 int main(int argc, char *argv[])
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "iv")) != -1)
+	while ((opt = getopt(argc, argv, "h::v")) != -1)
 	{
 		switch (opt)
 		{
-		case 'i':
-			options.info = 1;
+		case 'h':
+			options.show_header = 1;
+			strnset(options.header, 0, FITS_LINE_SIZE);
+			if (optarg != NULL)
+				strcpy(options.header, optarg);
+
 			break;
 
 		case 'v':
@@ -105,20 +82,34 @@ int main(int argc, char *argv[])
 
 	if (optind >= argc)
 	{
-		printf("\n!!! No FITS file specified\n");
+		show_error(E_NO_FITS_FILE_SPECIFIED);
 		show_usage(argv[0]);
 	}
 
-	if (findfile(argv[optind]) < 0)
-	{
-		printf("\nCould not find file %s\n", argv[optind]);
-		exit(EXIT_FAILURE);
-	}
+	fixFileName(argv[optind]);
 
 	printf("\nFITS file processor\n");
 
 	if (options.verbose)
 		show_options();
 
+	FITS_ERROR status = openFitsFile(options.filepath);
+	if (status != E_SUCCESS)
+	{
+		show_error(status);
+		exit(EXIT_FAILURE);
+	}
+
+	if (options.show_header)
+	{
+		status = fitsShowHeader(options.header, options.verbose);
+		if (status != E_SUCCESS)
+		{
+			show_error(status);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	closeFitsFile();
 	exit(EXIT_SUCCESS);
 }

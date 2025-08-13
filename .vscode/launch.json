@@ -1,0 +1,42 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "(gdb) Launch",
+			"type": "cppdbg",
+			"request": "launch",
+			"preLaunchTask": "Debug build",
+			"program": "${workspaceFolder}/fits",
+			"cwd": "~/Pictures/FITS",
+			"windows": {
+				"program": "${workspaceFolder}/fits.exe",
+				"cwd": "C:\\Users\\ehandrich\\Pictures\\FITS"
+			},
+			"args": [
+				// "-v",
+				"-h",
+				"M64\\jw03707-o100_t045_nircam_clear-f150w_i2d"
+			],
+			"stopAtEntry": false,
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "gdb",
+			// "miDebuggerPath": "/path/to/gdb",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				},
+				{
+					"description": "Set Disassembly Flavor to Intel",
+					"text": "-gdb-set disassembly-flavor intel",
+					"ignoreFailures": true
+				}
+			]
+		}
+	]
+}
