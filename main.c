@@ -10,27 +10,30 @@ struct s_options
 {
 	int verbose;
 	int show_header;
-	char header[FITS_LINE_SIZE];
+	int extract_image;
+	char image_name[FITS_LINE_SIZE];
 	char filepath[FITS_MAX_PATH];
 } options = { 0 };
 
 void show_options()
 {
 	printf("options:\n");
-	printf("  show_header=%d", options.show_header);
-
-	if (strlen(options.header) > 0)
-		printf(" <%s>", options.header);
-
-	printf("\n  verbose=%d\n", options.verbose);
+	printf("  extract_image=%d <%s>\n", options.extract_image, options.image_name);
+	printf("  show_header=%d\n", options.show_header);
+	printf("  verbose=%d\n", options.verbose);
 	printf("  fits file=%s\n\n", options.filepath);
 }
 
 void show_usage(char* appname)
 {
-	printf("\nusage: %s [options] fits_file_full_path\noptions:\n", appname);
-	printf("  -h<name> show header info. optional name is the single header name to show\n");
-	printf("           note: the header, if specified, must immediately follow the -h option\n");
+	if (appname[0] == '.' && appname[1] == '/')
+		appname += 2;
+
+	printf("\nusage: %s [options] fits_file\noptions:\n", appname);
+	printf("  -i<name> extract an image, default name is 'SCI'\n");
+	printf("           note: the name, if specified, must immediately follow the -i option\n");
+	printf("           image output is PFM format\n");
+	printf("  -h       show headers info\n");
 	printf("  -v       verbose, show lots of information\n");
 	printf("\n\n");
 	exit(1);
@@ -56,16 +59,21 @@ int main(int argc, char* argv[])
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "h::v")) != -1)
+	while ((opt = getopt(argc, argv, "i::hv")) != -1)
 	{
 		switch (opt)
 		{
+		case 'i':
+			options.extract_image = 1;
+			memset(options.image_name, 0, FITS_LINE_SIZE);
+			strcpy(options.image_name, "SCI");
+			if (optarg != NULL)
+				strcpy(options.image_name, optarg);
+
+			break;
+
 		case 'h':
 			options.show_header = 1;
-			memset(options.header, 0, FITS_LINE_SIZE);
-			if (optarg != NULL)
-				strcpy(options.header, optarg);
-
 			break;
 
 		case 'v':
@@ -99,7 +107,7 @@ int main(int argc, char* argv[])
 
 	if (options.show_header)
 	{
-		status = fitsShowHeader(options.header, options.verbose);
+		status = fitsShowHeader(options.verbose);
 		if (status != E_SUCCESS)
 		{
 			show_error(status);

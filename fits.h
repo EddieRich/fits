@@ -10,6 +10,6 @@
 FITS_ERROR openFitsFile(char* filepath);
 void closeFitsFile();
 
-FITS_ERROR fitsShowHeader(char* header, int verbose);
+FITS_ERROR fitsShowHeader(int verbose);
 
 #endif // __FITS__

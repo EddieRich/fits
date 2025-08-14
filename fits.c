@@ -102,7 +102,7 @@ FITS_ERROR getLineIntValue(int* result)
 	return E_SUCCESS;
 }
 
-FITS_ERROR fitsShowHeader(char* header, int verbose)
+FITS_ERROR fitsShowHeader(int verbose)
 {
 	FITS_ERROR status;
 	int bitpix;
@@ -125,10 +125,7 @@ FITS_ERROR fitsShowHeader(char* header, int verbose)
 		if (status != E_SUCCESS)
 			return status;
 
-		int show_header = strlen(header) == 0 || lineStartsWith(header);
-		if (show_header)
-			printf("\n%s\n", line);
-
+		printf("\n%s\n", line);
 		while (1)
 		{
 			status = nextLine();
@@ -188,9 +185,6 @@ FITS_ERROR fitsShowHeader(char* header, int verbose)
 					return status;
 			}
 		}
-
-		if (strlen(header) > 0)
-			break;
 
 		if (naxis > 0)
 		{
