@@ -4,7 +4,6 @@
 		{
 			"type": "cppbuild",
 			"label": "Debug build",
-			// "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe",
 			"command": "make",
 			"args": [],
 			"options": {
@@ -17,7 +16,7 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"detail": "compiler: C:\\msys64\\ucrt64\\bin\\gcc.exe"
+			"detail": "compiler: /usr/bin/gcc"
 		}
 	]
 }

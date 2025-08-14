@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include "fits.h"
 
@@ -9,8 +11,8 @@ struct s_options
 	int verbose;
 	int show_header;
 	char header[FITS_LINE_SIZE];
-	char filepath[PATH_MAX];
-} options = {0};
+	char filepath[FITS_MAX_PATH];
+} options = { 0 };
 
 void show_options()
 {
@@ -24,7 +26,7 @@ void show_options()
 	printf("  fits file=%s\n\n", options.filepath);
 }
 
-void show_usage(char *appname)
+void show_usage(char* appname)
 {
 	printf("\nusage: %s [options] fits_file_full_path\noptions:\n", appname);
 	printf("  -h<name> show header info. optional name is the single header name to show\n");
@@ -34,14 +36,14 @@ void show_usage(char *appname)
 	exit(1);
 }
 
-void fixFileName(char *filename)
+void fixFileName(char* filename)
 {
-	strnset(options.filepath, 0, PATH_MAX);
-	char *cwd = getcwd(NULL, 0);
+	memset(options.filepath, 0, FITS_MAX_PATH);
+	char* cwd = getcwd(NULL, 0);
 	strncpy(options.filepath, cwd, strlen(cwd));
 	free(cwd);
 
-	char *path_sep = "/";
+	char* path_sep = "/";
 
 #ifdef _WIN32
 	path_sep = "\\";
@@ -55,7 +57,7 @@ void fixFileName(char *filename)
 		strcat(options.filepath, ".fits");
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	int opt;
 
@@ -65,7 +67,7 @@ int main(int argc, char *argv[])
 		{
 		case 'h':
 			options.show_header = 1;
-			strnset(options.header, 0, FITS_LINE_SIZE);
+			memset(options.header, 0, FITS_LINE_SIZE);
 			if (optarg != NULL)
 				strcpy(options.header, optarg);
 

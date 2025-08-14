@@ -10,21 +10,17 @@
 			"request": "launch",
 			"preLaunchTask": "Debug build",
 			"program": "${workspaceFolder}/fits",
-			"cwd": "~/Pictures/FITS",
-			"windows": {
-				"program": "${workspaceFolder}/fits.exe",
-				"cwd": "C:\\Users\\ehandrich\\Pictures\\FITS"
-			},
+			"cwd": "~/Pictures/FITS/M64",
 			"args": [
 				// "-v",
 				"-h",
-				"M64\\jw03707-o100_t045_nircam_clear-f150w_i2d"
+				"jw03707-o100_t045_nircam_clear-f150w_i2d"
 			],
 			"stopAtEntry": false,
 			"environment": [],
 			"externalConsole": false,
 			"MIMode": "gdb",
-			// "miDebuggerPath": "/path/to/gdb",
+			"miDebuggerPath": "/usr/bin/gdb",
 			"setupCommands": [
 				{
 					"description": "Enable pretty-printing for gdb",

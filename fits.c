@@ -4,12 +4,12 @@
 
 #include "fits.h"
 
-FILE *fits_fp = NULL;
+FILE* fits_fp = NULL;
 char block[FITS_BLOCK_SIZE];
 char line[FITS_LINE_SIZE + 1];
-char *blptr = block;
+char* blptr = block;
 
-FITS_ERROR openFitsFile(char *filepath)
+FITS_ERROR openFitsFile(char* filepath)
 {
 	if (fits_fp != NULL)
 		fclose(fits_fp);
@@ -18,8 +18,8 @@ FITS_ERROR openFitsFile(char *filepath)
 	if (fits_fp == NULL)
 		return E_FITS_FILE_OPEN;
 
-	strnset(block, 0, FITS_BLOCK_SIZE);
-	strnset(line, 0, FITS_LINE_SIZE + 1);
+	memset(block, 0, FITS_BLOCK_SIZE);
+	memset(line, 0, FITS_LINE_SIZE + 1);
 
 	return E_SUCCESS;
 }
@@ -30,7 +30,7 @@ void closeFitsFile()
 		fclose(fits_fp);
 }
 
-int lineStartsWith(char *name)
+int lineStartsWith(char* name)
 {
 	return !strncmp(name, line, strlen(name));
 }
@@ -47,7 +47,7 @@ FITS_ERROR readBlock()
 
 FITS_ERROR nextLine()
 {
-	strnset(line, 0, FITS_LINE_SIZE + 1);
+	memset(line, 0, FITS_LINE_SIZE + 1);
 	if (blptr > block + FITS_BLOCK_SIZE - FITS_LINE_SIZE)
 		return E_END_OF_BLOCK;
 
@@ -57,7 +57,7 @@ FITS_ERROR nextLine()
 	return E_SUCCESS;
 }
 
-FITS_ERROR fitsShowHeader(char *header, int verbose)
+FITS_ERROR fitsShowHeader(char* header, int verbose)
 {
 	FITS_ERROR status;
 	while (1)
