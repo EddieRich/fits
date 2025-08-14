@@ -10,9 +10,9 @@
 			"request": "launch",
 			"preLaunchTask": "Debug build",
 			"program": "${workspaceFolder}/fits",
-			"cwd": "~/Pictures/FITS/M64",
+			"cwd": "/home/ed/Pictures/FITS/M64",
 			"args": [
-				// "-v",
+				//"-v",
 				"-h",
 				"jw03707-o100_t045_nircam_clear-f150w_i2d"
 			],

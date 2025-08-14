@@ -40,15 +40,10 @@ void fixFileName(char* filename)
 {
 	memset(options.filepath, 0, FITS_MAX_PATH);
 	char* cwd = getcwd(NULL, 0);
-	strncpy(options.filepath, cwd, strlen(cwd));
+	memcpy(options.filepath, cwd, strlen(cwd));
 	free(cwd);
 
 	char* path_sep = "/";
-
-#ifdef _WIN32
-	path_sep = "\\";
-#endif
-
 	if (strncmp(path_sep, filename, 1) != 0)
 		strcat(options.filepath, path_sep);
 
