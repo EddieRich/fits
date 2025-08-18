@@ -7,10 +7,16 @@
 #define FITS_BLOCK_SIZE 2880
 #define FITS_LINE_SIZE 80
 
+typedef struct s_fits_image
+{
+	char image_name[FITS_LINE_SIZE];
+	char filepath_noext[FITS_MAX_PATH];
+} FITSImage_t;
+
 FITS_ERROR openFitsFile(char* filepath);
 void closeFitsFile();
 
 FITS_ERROR fitsShowHeader(int verbose);
-FITS_ERROR fitsGetImage(char* name, char* filebasename);
+FITS_ERROR fitsGetImage(FITSImage_t fits_image);
 
 #endif // __FITS__

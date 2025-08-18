@@ -11,15 +11,15 @@ struct s_options
 	int verbose;
 	int show_header;
 	int extract_image;
-	char image_name[FITS_LINE_SIZE];
 	char filepath[FITS_MAX_PATH];
-	char filepath_noext[FITS_MAX_PATH];
 } options = { 0 };
+
+FITSImage_t fits_image;
 
 void show_options()
 {
 	printf("options:\n");
-	printf("  extract_image=%d <%s>\n", options.extract_image, options.image_name);
+	printf("  extract_image=%d <%s>\n", options.extract_image, fits_image.image_name);
 	printf("  show_header=%d\n", options.show_header);
 	printf("  verbose=%d\n", options.verbose);
 	printf("  fits file=%s\n\n", options.filepath);
@@ -43,7 +43,7 @@ void show_usage(char* appname)
 void fixFileName(char* filename)
 {
 	memset(options.filepath, 0, FITS_MAX_PATH);
-	memset(options.filepath_noext, 0, FITS_MAX_PATH);
+	memset(fits_image.filepath_noext, 0, FITS_MAX_PATH);
 	char* cwd = getcwd(NULL, 0);
 	memcpy(options.filepath, cwd, strlen(cwd));
 	free(cwd);
@@ -56,12 +56,12 @@ void fixFileName(char* filename)
 	char* pext = strrchr(options.filepath, '.');
 	if (pext == NULL)
 	{
-		strncpy(options.filepath_noext, options.filepath, strlen(options.filepath));
+		strncpy(fits_image.filepath_noext, options.filepath, strlen(options.filepath));
 		strcat(options.filepath, ".fits");
 	}
 	else
 	{
-		strncpy(options.filepath_noext, options.filepath, pext - options.filepath);
+		strncpy(fits_image.filepath_noext, options.filepath, pext - options.filepath);
 	}
 }
 
@@ -69,16 +69,18 @@ int main(int argc, char* argv[])
 {
 	int opt;
 
+	memset(&fits_image, 0, sizeof(FITSImage_t));
+
 	while ((opt = getopt(argc, argv, "i::hv")) != -1)
 	{
 		switch (opt)
 		{
 		case 'i':
 			options.extract_image = 1;
-			memset(options.image_name, 0, FITS_LINE_SIZE);
-			strcpy(options.image_name, "SCI");
+			memset(fits_image.image_name, 0, FITS_LINE_SIZE);
+			strcpy(fits_image.image_name, "SCI");
 			if (optarg != NULL)
-				strcpy(options.image_name, optarg);
+				strcpy(fits_image.image_name, optarg);
 
 			break;
 
@@ -127,7 +129,7 @@ int main(int argc, char* argv[])
 
 	if (options.extract_image)
 	{
-		status = fitsGetImage(options.image_name, options.filepath_noext);
+		status = fitsGetImage(fits_image);
 		if (status != E_SUCCESS)
 		{
 			show_error(status);

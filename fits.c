@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <byteswap.h>
 
 #include "fits.h"
 
@@ -205,7 +206,7 @@ FITS_ERROR fitsShowHeader(int verbose)
 	return E_SUCCESS;
 }
 
-FITS_ERROR fitsGetImage(char* image_name, char* filebasename)
+FITS_ERROR fitsGetImage(FITSImage_t fits_image)
 {
 	FITS_ERROR status;
 	int bitpix;
@@ -245,7 +246,7 @@ FITS_ERROR fitsGetImage(char* image_name, char* filebasename)
 
 				if (lineStartsWith("EXTNAME"))
 				{
-					if (strncmp(&line[11], image_name, strlen(image_name)) == 0)
+					if (strncmp(&line[11], fits_image.image_name, strlen(fits_image.image_name)) == 0)
 						found = 1;
 				}
 
@@ -279,22 +280,36 @@ FITS_ERROR fitsGetImage(char* image_name, char* filebasename)
 		if (found && naxis == 2 && bitpix == -32)
 		{
 			char outfile[FITS_MAX_PATH];
-			sprintf(outfile, "%s_%s.pfm", filebasename, image_name);
+			sprintf(outfile, "%s_%s.pfm", fits_image.filepath_noext, fits_image.image_name);
 			FILE* ofp = fopen(outfile, "wb");
 			if (ofp == NULL)
 				return E_IMAGE_FILE_OPEN;
 
-			fprintf(ofp, "Pf\n%d %d\n1.0\n", axis[0], axis[1]);
+			fprintf(ofp, "Pf\n%d %d\n-1.0\n", axis[0], axis[1]);
 
-			char imageline[4 * axis[0]];
-			for (int i = 0; i < naxis; i++)
+			float max = -1.0f;
+			float min = 1e6f;
+
+			unsigned int imageline[axis[0]];
+			for (int i = 0; i < axis[1]; i++)
 			{
 				fread(imageline, 4, axis[0], fits_fp);
+
+				for (int i = 0; i < axis[0]; i++)
+				{
+					imageline[i] = bswap_32(imageline[i]);
+					if (*((float*)&imageline[i]) > max)
+						max = *((float*)&imageline[i]);
+					if (*((float*)&imageline[i]) < min)
+						min = *((float*)&imageline[i]);
+				}
+
 				fwrite(imageline, 4, axis[0], ofp);
 			}
 
 			fflush(ofp);
 			fclose(ofp);
+			printf("\nMAX = %f MIN = %f\n", max, min);
 			return E_SUCCESS;
 		}
 		else if (naxis > 0)

@@ -1,5 +1,5 @@
 # CFLAGS is not defined by default
-CFLAGS=-MMD -Wall -Wextra -Werror -std=c17 -march=x86-64 -fdiagnostics-color=always
+CFLAGS=-MMD -Wall -Wextra -Werror -Wno-format-overflow -std=c17 -march=x86-64 -fdiagnostics-color=always
 
 SRC=$(wildcard *.c)
 OBJ=$(SRC:%.c=%.o)
