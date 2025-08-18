@@ -8,4 +8,6 @@
 	E(E_NO_VALUE_INDICATOR, "record is missing the value indicator") \
 	E(E_END_OF_LINE, "the end of the record was reached") \
 	E(E_INVALID_CHARACTER, "invalid character found") \
-	E(E_MISSING_VALUE, "value is missing from the record")
+	E(E_MISSING_VALUE, "value is missing from the record") \
+	E(E_IMAGE_FILE_OPEN, "could not open image file") \
+	E(E_IMAGE_NOT_FOUND, "image name not found")

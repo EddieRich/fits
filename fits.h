@@ -11,5 +11,6 @@ FITS_ERROR openFitsFile(char* filepath);
 void closeFitsFile();
 
 FITS_ERROR fitsShowHeader(int verbose);
+FITS_ERROR fitsGetImage(char* name, char* filebasename);
 
 #endif // __FITS__

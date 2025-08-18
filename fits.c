@@ -109,6 +109,8 @@ FITS_ERROR fitsShowHeader(int verbose)
 	int naxis;
 	int axis[6];
 
+	rewind(fits_fp);
+
 	while (1)
 	{
 		bitpix = 0;
@@ -187,6 +189,115 @@ FITS_ERROR fitsShowHeader(int verbose)
 		}
 
 		if (naxis > 0)
+		{
+			int byte_count = abs(bitpix) / 8;
+			for (int i = 0; i < naxis; i++)
+				byte_count *= axis[i];
+
+			int hangover = byte_count % FITS_BLOCK_SIZE;
+			if (hangover)
+				byte_count += FITS_BLOCK_SIZE - hangover;
+
+			fseek(fits_fp, (long)byte_count, SEEK_CUR);
+		}
+	}
+
+	return E_SUCCESS;
+}
+
+FITS_ERROR fitsGetImage(char* image_name, char* filebasename)
+{
+	FITS_ERROR status;
+	int bitpix;
+	int naxis;
+	int axis[6];
+	int found = 0;
+
+	rewind(fits_fp);
+
+	while (!found)
+	{
+		bitpix = 0;
+		naxis = 0;
+		memset(axis, 0, sizeof(int) * 6);
+
+		status = readBlock();
+		if (status == E_END_OF_FILE)
+			break;
+		if (status != E_SUCCESS)
+			return status;
+
+		status = nextLine();
+		if (status != E_SUCCESS)
+			return status;
+
+		while (1)
+		{
+			status = nextLine();
+			if (status == E_SUCCESS)
+			{
+				if (lineStartsWith("BITPIX"))
+				{
+					status = getLineIntValue(&bitpix);
+					if (status != E_SUCCESS)
+						return status;
+				}
+
+				if (lineStartsWith("EXTNAME"))
+				{
+					if (strncmp(&line[11], image_name, strlen(image_name)) == 0)
+						found = 1;
+				}
+
+				// note the space at the end
+				if (lineStartsWith("NAXIS "))
+				{
+					status = getLineIntValue(&naxis);
+					if (status != E_SUCCESS)
+						return status;
+				}
+				// note there is no space (NAXIS1 NAXIS2 NAXIS3 etc.)
+				else if (lineStartsWith("NAXIS"))
+				{
+					int index = line[5] - '1';
+					status = getLineIntValue(&axis[index]);
+					if (status != E_SUCCESS)
+						return status;
+				}
+
+				if (lineStartsWith("END"))
+					break;
+			}
+			else if (status == E_END_OF_BLOCK)
+			{
+				status = readBlock();
+				if (status != E_SUCCESS)
+					return status;
+			}
+		}
+
+		if (found && naxis == 2 && bitpix == -32)
+		{
+			char outfile[FITS_MAX_PATH];
+			sprintf(outfile, "%s_%s.pfm", filebasename, image_name);
+			FILE* ofp = fopen(outfile, "wb");
+			if (ofp == NULL)
+				return E_IMAGE_FILE_OPEN;
+
+			fprintf(ofp, "Pf\n%d %d\n1.0\n", axis[0], axis[1]);
+
+			char imageline[4 * axis[0]];
+			for (int i = 0; i < naxis; i++)
+			{
+				fread(imageline, 4, axis[0], fits_fp);
+				fwrite(imageline, 4, axis[0], ofp);
+			}
+
+			fflush(ofp);
+			fclose(ofp);
+			return E_SUCCESS;
+		}
+		else if (naxis > 0)
 		{
 			int byte_count = abs(bitpix) / 8;
 			for (int i = 0; i < naxis; i++)

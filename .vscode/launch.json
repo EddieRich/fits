@@ -13,7 +13,8 @@
 			"cwd": "/home/ed/Pictures/FITS/M64",
 			"args": [
 				//"-v",
-				"-h",
+				//"-h",
+				"-i",
 				"jw03707-o100_t045_nircam_clear-f150w_i2d"
 			],
 			"stopAtEntry": false,

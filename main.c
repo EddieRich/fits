@@ -13,6 +13,7 @@ struct s_options
 	int extract_image;
 	char image_name[FITS_LINE_SIZE];
 	char filepath[FITS_MAX_PATH];
+	char filepath_noext[FITS_MAX_PATH];
 } options = { 0 };
 
 void show_options()
@@ -32,7 +33,7 @@ void show_usage(char* appname)
 	printf("\nusage: %s [options] fits_file\noptions:\n", appname);
 	printf("  -i<name> extract an image, default name is 'SCI'\n");
 	printf("           note: the name, if specified, must immediately follow the -i option\n");
-	printf("           image output is PFM format\n");
+	printf("           image output is Pf format\n");
 	printf("  -h       show headers info\n");
 	printf("  -v       verbose, show lots of information\n");
 	printf("\n\n");
@@ -42,6 +43,7 @@ void show_usage(char* appname)
 void fixFileName(char* filename)
 {
 	memset(options.filepath, 0, FITS_MAX_PATH);
+	memset(options.filepath_noext, 0, FITS_MAX_PATH);
 	char* cwd = getcwd(NULL, 0);
 	memcpy(options.filepath, cwd, strlen(cwd));
 	free(cwd);
@@ -51,8 +53,16 @@ void fixFileName(char* filename)
 		strcat(options.filepath, path_sep);
 
 	strcat(options.filepath, filename);
-	if (!strrchr(options.filepath, '.'))
+	char* pext = strrchr(options.filepath, '.');
+	if (pext == NULL)
+	{
+		strncpy(options.filepath_noext, options.filepath, strlen(options.filepath));
 		strcat(options.filepath, ".fits");
+	}
+	else
+	{
+		strncpy(options.filepath_noext, options.filepath, pext - options.filepath);
+	}
 }
 
 int main(int argc, char* argv[])
@@ -108,6 +118,16 @@ int main(int argc, char* argv[])
 	if (options.show_header)
 	{
 		status = fitsShowHeader(options.verbose);
+		if (status != E_SUCCESS)
+		{
+			show_error(status);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (options.extract_image)
+	{
+		status = fitsGetImage(options.image_name, options.filepath_noext);
 		if (status != E_SUCCESS)
 		{
 			show_error(status);

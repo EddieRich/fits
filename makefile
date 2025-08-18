@@ -13,7 +13,7 @@ LIBS=$(addprefix -l,)
 
 .PHONY: clean #install
 
-debug: CFLAGS += -g
+debug: CFLAGS += -g -Wno-unused-parameter -Wno-unused-variable
 debug: $(EXE)
 
 remake: clean debug
