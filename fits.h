@@ -7,6 +7,8 @@
 #define FITS_BLOCK_SIZE 2880
 #define FITS_LINE_SIZE 80
 
+#define YESNO(bool) (bool) ? "YES" : "NO"
+
 typedef struct s_fits_image
 {
 	int width;
@@ -26,5 +28,6 @@ FITS_ERROR fitsShowHeader(int verbose);
 FITS_ERROR fitsGetImage(FITSImage_t* pfi, int verbose);
 
 void endian32(void* ptr, int count);
+float kahanSum32(float* ptr, int* bad, int count);
 
 #endif // __FITS__

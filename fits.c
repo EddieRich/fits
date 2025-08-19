@@ -302,6 +302,24 @@ FITS_ERROR fitsGetImage(FITSImage_t* pfi, int verbose)
 					pfi->min = image[i];
 			}
 
+			int kbad = 0;
+			// test kahan
+			float kahan = kahanSum32(image, &kbad, pfi->pixels);
+
+			int nbad = 0;
+			float naive = 0.0f;
+			for (int i = 0; i < pfi->pixels; i++)
+			{
+				if (isnan(image[i]))
+				{
+					nbad++;
+					continue;
+				}
+
+				naive += image[i];
+			}
+
+
 			// process here
 
 			char outfile[FITS_MAX_PATH];
@@ -319,6 +337,10 @@ FITS_ERROR fitsGetImage(FITSImage_t* pfi, int verbose)
 			if (verbose)
 			{
 				setlocale(LC_NUMERIC, "");
+
+				printf("\n\nkahan : %'f, %'d bad pixels", kahan, kbad);
+				printf("\n\nnaive : %'f, %'d bad pixels", naive, nbad);
+
 				printf("\nImage %s : %'d x %'d, %'d pixels, %'d bytes\n", pfi->image_name, pfi->width, pfi->height, pfi->pixels, pfi->bytes);
 				printf("MAX = %f MIN = %f\n", pfi->max, pfi->min);
 			}

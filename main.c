@@ -19,9 +19,9 @@ FITSImage_t fits_image;
 void show_options()
 {
 	printf("options:\n");
-	printf("  extract_image=%d <%s>\n", options.extract_image, fits_image.image_name);
-	printf("  show_header=%d\n", options.show_header);
-	printf("  verbose=%d\n", options.verbose);
+	printf("  extract_image=%s <%s>\n", YESNO(options.extract_image), fits_image.image_name);
+	printf("  show_header=%s\n", YESNO(options.show_header));
+	printf("  verbose=%s\n", YESNO(options.verbose));
 	printf("  fits file=%s\n\n", options.filepath);
 }
 

@@ -2,7 +2,7 @@
 CFLAGS=-MMD -Wall -Wextra -Werror -Wno-format-overflow -std=c17 -march=x86-64 -fdiagnostics-color=always
 
 SRC=$(wildcard *.c)
-OBJ=$(SRC:%.c=%.o) endian.o
+OBJ=$(SRC:%.c=%.o)
 DEP=$(OBJ:%.o=%.d)
 
 EXE=fits
@@ -38,7 +38,10 @@ install: release
 endian.o: endian.s
 	as -o endian.o endian.s
 
-$(EXE): $(OBJ)
+kahan.o: kahan.s
+	as -o kahan.o kahan.s
+
+$(EXE): $(OBJ) endian.o kahan.o
 	gcc -o $@ $^ $(LIBS)
 
 -include $(DEP)
