@@ -26,7 +26,8 @@ release: clean $(EXE)
 .ONESHELL:
 test: release
 	@cd ~/Pictures/FITS/M64
-	~/Projects/fits/fits -i jw03707-o100_t045_nircam_clear-f150w_i2d
+	~/Projects/fits/fits -v -i jw03707-o100_t045_nircam_clear-f150w_i2d
+.NOTPARALLEL: test
 
 clean:
 	$(RM) $(OBJ) $(DEP) $(EXE)
@@ -38,6 +39,6 @@ endian.o: endian.s
 	as -o endian.o endian.s
 
 $(EXE): $(OBJ)
-	gcc -o $@ $^ -z noexecstack $(LIBS)
+	gcc -o $@ $^ $(LIBS)
 
 -include $(DEP)

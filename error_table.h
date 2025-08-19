@@ -10,4 +10,5 @@
 	E(E_INVALID_CHARACTER, "invalid character found") \
 	E(E_MISSING_VALUE, "value is missing from the record") \
 	E(E_IMAGE_FILE_OPEN, "could not open image file") \
-	E(E_IMAGE_NOT_FOUND, "image name not found")
+	E(E_IMAGE_NOT_FOUND, "image name not found") \
+	E(E_IMAGE_BUFFER_CREATE, "could not allocate memory for image buffer")

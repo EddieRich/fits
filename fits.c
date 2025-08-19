@@ -5,15 +5,17 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <float.h>
+#include <locale.h>
 
 #include "fits.h"
 
-FILE *fits_fp = NULL;
+FILE* fits_fp = NULL;
 char block[FITS_BLOCK_SIZE];
 char line[FITS_LINE_SIZE + 1];
-char *blptr = block;
+char* blptr = block;
 
-FITS_ERROR openFitsFile(char *filepath)
+FITS_ERROR openFitsFile(char* filepath)
 {
 	if (fits_fp != NULL)
 		fclose(fits_fp);
@@ -34,7 +36,7 @@ void closeFitsFile()
 		fclose(fits_fp);
 }
 
-int lineStartsWith(char *name)
+int lineStartsWith(char* name)
 {
 	return !strncmp(name, line, strlen(name));
 }
@@ -69,7 +71,7 @@ FITS_ERROR nextLine()
 	return E_SUCCESS;
 }
 
-FITS_ERROR getLineIntValue(int *result)
+FITS_ERROR getLineIntValue(int* result)
 {
 	char strvalue[FITS_LINE_SIZE];
 
@@ -205,7 +207,7 @@ FITS_ERROR fitsShowHeader(int verbose)
 	return E_SUCCESS;
 }
 
-FITS_ERROR fitsGetImage(FITSImage_t fits_image)
+FITS_ERROR fitsGetImage(FITSImage_t* pfi, int verbose)
 {
 	FITS_ERROR status;
 	int bitpix;
@@ -245,7 +247,7 @@ FITS_ERROR fitsGetImage(FITSImage_t fits_image)
 
 				if (lineStartsWith("EXTNAME"))
 				{
-					if (strncmp(&line[11], fits_image.image_name, strlen(fits_image.image_name)) == 0)
+					if (strncmp(&line[11], pfi->image_name, strlen(pfi->image_name)) == 0)
 						found = 1;
 				}
 
@@ -278,38 +280,48 @@ FITS_ERROR fitsGetImage(FITSImage_t fits_image)
 
 		if (found && naxis == 2 && bitpix == -32)
 		{
+			pfi->width = axis[0];
+			pfi->height = axis[1];
+			pfi->pixels = pfi->width * pfi->height;
+			pfi->bytes = pfi->pixels * sizeof(float);
+
+			float* image = malloc(pfi->bytes);
+			if (image == NULL)
+				return E_IMAGE_BUFFER_CREATE;
+
+			fread(image, sizeof(float), pfi->pixels, fits_fp);
+			endian32(image, pfi->pixels);
+
+			pfi->max = FLT_MIN;
+			pfi->min = FLT_MAX;
+			for (int i = 0; i < pfi->pixels; i++)
+			{
+				if (image[i] > pfi->max)
+					pfi->max = image[i];
+				if (image[i] < pfi->min)
+					pfi->min = image[i];
+			}
+
+			// process here
+
 			char outfile[FITS_MAX_PATH];
-			sprintf(outfile, "%s_%s.pfm", fits_image.filepath_noext, fits_image.image_name);
-			FILE *ofp = fopen(outfile, "wb");
+			sprintf(outfile, "%s_%s.pfm", pfi->filepath_noext, pfi->image_name);
+			FILE* ofp = fopen(outfile, "wb");
 			if (ofp == NULL)
 				return E_IMAGE_FILE_OPEN;
 
 			fprintf(ofp, "Pf\n%d %d\n-1.0\n", axis[0], axis[1]);
-
-			float max = -1.0f;
-			float min = 1e6f;
-
-			float imageline[axis[0]];
-			for (int i = 0; i < axis[1]; i++)
-			{
-				fread(imageline, 4, axis[0], fits_fp);
-				endian32(imageline, axis[0]);
-
-				for (int i = 0; i < axis[0]; i++)
-				{
-					if (imageline[i] > max)
-						max = imageline[i];
-					if (imageline[i] < min)
-						min = imageline[i];
-				}
-
-				fwrite(imageline, 4, axis[0], ofp);
-			}
-
+			fwrite(image, sizeof(float), pfi->pixels, ofp);
 			fflush(ofp);
 			fclose(ofp);
-			printf("\nImage %d x %d\n", axis[0], axis[1]);
-			printf("MAX = %f MIN = %f\n", max, min);
+			free(image);
+
+			if (verbose)
+			{
+				setlocale(LC_NUMERIC, "");
+				printf("\nImage %s : %'d x %'d, %'d pixels, %'d bytes\n", pfi->image_name, pfi->width, pfi->height, pfi->pixels, pfi->bytes);
+				printf("MAX = %f MIN = %f\n", pfi->max, pfi->min);
+			}
 			return E_SUCCESS;
 		}
 		else if (naxis > 0)

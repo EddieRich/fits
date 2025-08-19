@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
 
 	if (options.extract_image)
 	{
-		status = fitsGetImage(fits_image);
+		status = fitsGetImage(&fits_image, options.verbose);
 		if (status != E_SUCCESS)
 		{
 			show_error(status);
