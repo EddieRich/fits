@@ -5,16 +5,15 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
-#include <byteswap.h>
 
 #include "fits.h"
 
-FILE* fits_fp = NULL;
+FILE *fits_fp = NULL;
 char block[FITS_BLOCK_SIZE];
 char line[FITS_LINE_SIZE + 1];
-char* blptr = block;
+char *blptr = block;
 
-FITS_ERROR openFitsFile(char* filepath)
+FITS_ERROR openFitsFile(char *filepath)
 {
 	if (fits_fp != NULL)
 		fclose(fits_fp);
@@ -35,7 +34,7 @@ void closeFitsFile()
 		fclose(fits_fp);
 }
 
-int lineStartsWith(char* name)
+int lineStartsWith(char *name)
 {
 	return !strncmp(name, line, strlen(name));
 }
@@ -70,7 +69,7 @@ FITS_ERROR nextLine()
 	return E_SUCCESS;
 }
 
-FITS_ERROR getLineIntValue(int* result)
+FITS_ERROR getLineIntValue(int *result)
 {
 	char strvalue[FITS_LINE_SIZE];
 
@@ -281,7 +280,7 @@ FITS_ERROR fitsGetImage(FITSImage_t fits_image)
 		{
 			char outfile[FITS_MAX_PATH];
 			sprintf(outfile, "%s_%s.pfm", fits_image.filepath_noext, fits_image.image_name);
-			FILE* ofp = fopen(outfile, "wb");
+			FILE *ofp = fopen(outfile, "wb");
 			if (ofp == NULL)
 				return E_IMAGE_FILE_OPEN;
 
@@ -290,18 +289,18 @@ FITS_ERROR fitsGetImage(FITSImage_t fits_image)
 			float max = -1.0f;
 			float min = 1e6f;
 
-			unsigned int imageline[axis[0]];
+			float imageline[axis[0]];
 			for (int i = 0; i < axis[1]; i++)
 			{
 				fread(imageline, 4, axis[0], fits_fp);
+				endian32(imageline, axis[0]);
 
 				for (int i = 0; i < axis[0]; i++)
 				{
-					imageline[i] = bswap_32(imageline[i]);
-					if (*((float*)&imageline[i]) > max)
-						max = *((float*)&imageline[i]);
-					if (*((float*)&imageline[i]) < min)
-						min = *((float*)&imageline[i]);
+					if (imageline[i] > max)
+						max = imageline[i];
+					if (imageline[i] < min)
+						min = imageline[i];
 				}
 
 				fwrite(imageline, 4, axis[0], ofp);
@@ -309,7 +308,8 @@ FITS_ERROR fitsGetImage(FITSImage_t fits_image)
 
 			fflush(ofp);
 			fclose(ofp);
-			printf("\nMAX = %f MIN = %f\n", max, min);
+			printf("\nImage %d x %d\n", axis[0], axis[1]);
+			printf("MAX = %f MIN = %f\n", max, min);
 			return E_SUCCESS;
 		}
 		else if (naxis > 0)

@@ -2,7 +2,7 @@
 CFLAGS=-MMD -Wall -Wextra -Werror -Wno-format-overflow -std=c17 -march=x86-64 -fdiagnostics-color=always
 
 SRC=$(wildcard *.c)
-OBJ=$(SRC:%.c=%.o)
+OBJ=$(SRC:%.c=%.o) endian.o
 DEP=$(OBJ:%.o=%.d)
 
 EXE=fits
@@ -11,7 +11,7 @@ EXE=fits
 # $(addprefix -l, m pthread GL)
 LIBS=$(addprefix -l,)
 
-.PHONY: clean #install
+.PHONY: clean
 
 debug: CFLAGS += -g -Wno-unused-parameter -Wno-unused-variable
 debug: $(EXE)
@@ -19,17 +19,20 @@ debug: $(EXE)
 remake: clean debug
 .NOTPARALLEL: remake
 
-release: CFLAGS += -Os -s -fno-ident -fno-asynchronous-unwind-tables -faggressive-loop-optimizations
+release: CFLAGS += -Os -s -Wno-unused-result -fno-ident -fno-asynchronous-unwind-tables -faggressive-loop-optimizations
 release: clean $(EXE)
 .NOTPARALLEL: release
 
 clean:
 	$(RM) $(OBJ) $(DEP) $(EXE)
 
-#install: release
-#	cp $(EXE) $(TARGET)/bin
+install: release
+	sudo cp $(EXE) /usr/local/bin/$(EXE)
+
+endian.o: endian.s
+	as -o endian.o endian.s
 
 $(EXE): $(OBJ)
-	gcc -o $@ $^ $(LIBS)
+	gcc -o $@ $^ -z noexecstack $(LIBS)
 
 -include $(DEP)

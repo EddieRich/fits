@@ -13,10 +13,12 @@ typedef struct s_fits_image
 	char filepath_noext[FITS_MAX_PATH];
 } FITSImage_t;
 
-FITS_ERROR openFitsFile(char* filepath);
+FITS_ERROR openFitsFile(char *filepath);
 void closeFitsFile();
 
 FITS_ERROR fitsShowHeader(int verbose);
 FITS_ERROR fitsGetImage(FITSImage_t fits_image);
+
+void endian32(void *ptr, int count);
 
 #endif // __FITS__
