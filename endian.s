@@ -6,11 +6,11 @@
 #	rdi - pointer to buffer
 # rsi - 32 bit element count
 endian32:
-	mov	rcx, rsi
+	mov	ecx, esi
 again:
-	mov 	rax, [rdi]
-	bswap rax
-	mov 	[rdi], rax
+	mov 	eax, [rdi]
+	bswap eax
+	mov 	[rdi], eax
 	add 	rdi, 4
 	loop	again
 	ret
